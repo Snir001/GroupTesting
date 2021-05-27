@@ -32,6 +32,7 @@ class zfd:
         # for each number from 1 to q
         for i in range(1,q+1):
             # check if i power all number reach to all the numbers in the field
+            #try  np.zeros(8, dtype=np.int)
             check_arr=np.zeros(q)
             for j in range(1,q+1):
                 num=pow(i,j)%q
@@ -64,11 +65,11 @@ class zfd:
 
     def generate_code(self,q,n,g,d):
         """
-         create c(x) = m(x) * g(x). deg(c(x))= n
-         g(x) is the creatore polynom. deg(g(x))=d-1
-         m(x) are all the posible messages in the left degree. deg(m)=n-(d-1)
+        create c(x) = m(x) * g(x);    deg(c(x))= n
+        g(x) is the creatore polynom. deg(g(x))=d-1
+        m(x) are all the posible messages in the left degree. deg(m)=n-(d-1)
         """
-        
+        # start_time = time.process_time()
         # first, create m array:
         # each m is an array of deg(m), with all posibilities
         m_list=iter.product(range(q),repeat=n-d+1)
@@ -78,6 +79,7 @@ class zfd:
             word=list(map(lambda i:i%q,c))
             word=np.pad(word,(0, n-len(word)))
             self.word_list.append(word)
+        # print("done. working time: ",time.process_time() - start_time)
 
     
     
@@ -89,11 +91,13 @@ class zfd:
         # template=[np.zeros(self.q) for _ in range(self.n)]
         for word in self.word_list:
             #create new arr
-            b_word=[np.zeros(self.q) for _ in range(self.n)]
+            b_word=[np.zeros(self.q,dtype=np.int8) for _ in range(self.n)]
             for i,num in enumerate(word):
                 #some nums are 0.0 which is float which is bad
-                b_word[i][int(num)]=1                                                      
-            self.binary_word_list.append(b_word)
+                b_word[i][int(num)]=1
+            one_list=[item for sublist in b_word for item in sublist]                                                       
+            self.binary_word_list.append(one_list)
+        
         
 
         
@@ -101,11 +105,14 @@ class zfd:
         
             
 
-      
+# q C[nq, kq, dq]q n       N         m
+#11 [10, 5,  6]11 110 11^5 = 161,051 m=2
+#23 [22, 4, 19]23 506 23^4 = 279,841 m=7
+#23 [21, 3, 19]23 483 23^3 = 12,167 m=10
 
+# zfd1=zfd(22,4,23)
+zfd2=zfd(21,3,23)
+# zfd3=zfd(10,5,6)
 
-zfd1=zfd(22,4,23)
-print(zfd1.word_list[160000])
-print(zfd1.binary_word_list[160000])
 
 print("done. working time: ",time.process_time() - start_time)
