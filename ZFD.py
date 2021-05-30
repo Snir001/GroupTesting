@@ -10,8 +10,31 @@ number of tubes is T=n*q
 import time
 start_time = time.process_time()
 
-import numpy as np
+# import numpy as np
 import itertools as iter
+
+
+def polymul(A, B):
+    """
+    # Simple Python3 program to multiply two polynomials
+    
+    # A[] represents coefficients of first polynomial
+    # B[] represents coefficients of second polynomial
+    # m and n are sizes of A[] and B[] respectively
+    """
+    m=len(A)
+    n=len(B)
+    prod = [0] * (m + n - 1)
+    # Multiply two polynomials term by term
+    # Take ever term of first polynomial
+    for i in range(m):
+        # Multiply the current term of first 
+        # polynomial with every term of 
+        # second polynomial.
+        for j in range(n):
+            prod[i + j] += A[i] * B[j]
+    return prod
+
 
 class zfd:
 
@@ -32,8 +55,7 @@ class zfd:
         # for each number from 1 to q
         for i in range(1,q+1):
             # check if i power all number reach to all the numbers in the field
-            #try  np.zeros(8, dtype=np.int)
-            check_arr=np.zeros(q)
+            check_arr=[0]*q
             for j in range(1,q+1):
                 num=pow(i,j)%q
                 check_arr[num]=1
@@ -53,7 +75,7 @@ class zfd:
 
         #multiply them by one another
         for i in range(1,d-1):
-            sum=np.polymul(sum,small_p[i])
+            sum=polymul(sum,small_p[i])
         
         #return the multipication
         return sum
@@ -75,9 +97,10 @@ class zfd:
         m_list=iter.product(range(q),repeat=n-d+1)
         # for each m, find his c(x) and add to the word list
         for m in m_list:
-            c=np.polymul(list(m),g)
+            c=polymul(list(m),g)
             word=list(map(lambda i:i%q,c))
-            word=np.pad(word,(0, n-len(word)))
+            # pad with zeros to right size
+            word=word+[0]* (n-len(word))
             self.word_list.append(word)
         # print("done. working time: ",time.process_time() - start_time)
 
@@ -88,10 +111,9 @@ class zfd:
         convert the wordlist to a uniqe binary pattern with weight 1
         [2,1,0,2]_3 -> [100,010,001,100]-> [1,0,0,0,1,0,0,0,1,1,0,0]
         """
-        # template=[np.zeros(self.q) for _ in range(self.n)]
         for word in self.word_list:
             #create new arr
-            b_word=[np.zeros(self.q,dtype=np.int8) for _ in range(self.n)]
+            b_word=[[0]*self.q for _ in range(self.n)]
             for i,num in enumerate(word):
                 #some nums are 0.0 which is float which is bad
                 b_word[i][int(num)]=1
@@ -111,8 +133,11 @@ class zfd:
 #23 [21, 3, 19]23 483 23^3 = 12,167 m=10
 
 # zfd1=zfd(22,4,23)
-zfd2=zfd(21,3,23)
+# zfd2=zfd(21,3,23)
 # zfd3=zfd(10,5,6)
 
+# print(zfd1.word_list[160000])
+# print(zfd1.binary_word_list[160000])
 
-print("done. working time: ",time.process_time() - start_time)
+
+# print("done. working time: ",time.process_time() - start_time)
