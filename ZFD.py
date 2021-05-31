@@ -17,7 +17,7 @@ import itertools as iter
 def polymul(A, B):
     """
     # Simple Python3 program to multiply two polynomials
-    
+
     # A[] represents coefficients of first polynomial
     # B[] represents coefficients of second polynomial
     # m and n are sizes of A[] and B[] respectively
@@ -28,8 +28,8 @@ def polymul(A, B):
     # Multiply two polynomials term by term
     # Take ever term of first polynomial
     for i in range(m):
-        # Multiply the current term of first 
-        # polynomial with every term of 
+        # Multiply the current term of first
+        # polynomial with every term of
         # second polynomial.
         for j in range(n):
             prod[i + j] += A[i] * B[j]
@@ -50,6 +50,8 @@ class zfd:
         self.g=self.get_creator_poly(self.q,self.d,self.a)
         self.generate_code(q,n,self.g,self.d)
         self.uniqe_binary_words()
+        self.binary_length = self.q * self.n
+        self.words_number = q**k
 
     def find_creator(self,q):
         # for each number from 1 to q
@@ -119,12 +121,7 @@ class zfd:
                 b_word[i][int(num)]=1
             one_list=[item for sublist in b_word for item in sublist]                                                       
             self.binary_word_list.append(one_list)
-        
-        
 
-        
-
-        
             
 
 # q C[nq, kq, dq]q n       N         m

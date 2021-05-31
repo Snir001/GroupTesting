@@ -2,7 +2,8 @@ from numpy import random
 import random as rand
 import functools
 
-POPULATION_SIZE   = 10000
+
+POPULATION_SIZE   = 100000
 INIT_NUM_OF_SICK  = 10
 AVG_SICK_DAYS     = 10
 DAYS_TO_HOSPITAL  = 7
@@ -67,9 +68,9 @@ class TheWorld:
     
     # Get number of peapole to infect and list of potential sicks,
     # choםse sicks randomly and infect them
-    def AddNewSicks(self, numOfInfected, potential_sicks):
+    def AddNewSicks(self, numOfInfected, potential_sicks, related_sicks=[]):    # TODO: remove last parm
         infectedIndex = rand.sample(potential_sicks, numOfInfected)
-        
+        print(f"Num of random sicks = {numOfInfected - len(list(set(related_sicks).intersection(infectedIndex)))}")  # TODO: remove - just for debug
         for index in infectedIndex:
             max_days_of_sickness = random.poisson(AVG_SICK_DAYS)
             while max_days_of_sickness == 0:
@@ -98,16 +99,16 @@ class TheWorld:
 
         for sick in sicks:
             potential_sicks.extend(sick["related"]) 
-        
+
+        related_sicks = potential_sicks.copy() # TODO: remove - just for debug
         potential_sicks.extend(rand.sample(range(POPULATION_SIZE), len(sicks)))
         potential_sicks = set(potential_sicks)
         potential_sicks = list(potential_sicks & set(map(lambda x: x["id"], self.GetNotYetSicks())))
         
         num_of_new_sicks = min(round(EXPECTED_INFECTED*len(sicks)), len(self.GetNotYetSicks()), len(potential_sicks))
-        
-        self.AddNewSicks(num_of_new_sicks, potential_sicks)
+        self.AddNewSicks(num_of_new_sicks, potential_sicks, related_sicks)  # TODO: remove last parm
     
-    # Every sick who's sick for DAYS_TO_HOSPITAL days get into hospital w.p. SEVERE_SICK_PROB
+    # Every sick who's sick for DAYS_TO_HOSPITAL days get into hospital w.p. SEVERE_SICK_PROBfdadfasfdasfdsadfsaffdsafdasfasdfdas
     def Hospitalize(self):
         not_quarantined = self.GetNotQuarantined()
         for person in not_quarantined:
