@@ -1,6 +1,6 @@
 from TheWorld import TheWorld
 import functools
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import ZFD
 import numpy as np
 import math
@@ -16,6 +16,30 @@ LOW       = 0
 HIGH      = 1
 FORBIDDEN = 2
 
+
+"""
+def decorator(func):
+    @functools.wraps(func)
+    def wrapper_decorator(*args, **kwargs):
+        # Do something before
+        value = func(*args, **kwargs)
+        # Do something after
+        return value
+    return wrapper_decorator
+"""
+
+def timer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.process_time()
+        value = func(*args, **kwargs)
+        print("done", func.__name__, ". working time: ",time.process_time() - start_time)
+        return value
+    return wrapper
+
+
+
+    
  
 class WorldSimulator:
 
@@ -95,6 +119,7 @@ class WorldSimulator:
         
         NEW_OUT_SICKS= [p["id"] for p in sim.world.GetNotQuarantined()]
         print("but we put ",len(NOW_SICK)-len(NEW_OUT_SICKS) , " in quara and now there are ",len(NEW_OUT_SICKS)," out")
+        print("    ids:",NEW_OUT_SICKS )
 
 
         #TODO: add here how many sicks went to quarantine, and howmany we left outside!
@@ -154,6 +179,8 @@ def build_groups(id_list, zfd):
     return a list of lists, each sublist contains ids group of size 'size'
     [[<---12,167--->],[<---12,167--->],[...]]
     """
+    # make rand groups
+    np.random.shuffle(id_list)
     group_of_groups = [id_list[group*zfd.words_number:(group+1)*zfd.words_number] for group in range(math.ceil(len(id_list)/zfd.words_number))]
     return group_of_groups
 
@@ -170,13 +197,11 @@ def create_group_tubes(group, zfd):
     #foreach man in the group
     for i in range(len(group)):
         #check the indexes of the 1:
-        # man in group[i] got the zfd.binary_word_list[i]
         binary_word=zfd.binary_word_list[i]
-        tube_number_list=[j for j in range(zfd.binary_length) if binary_word[j] ]
-        for tube_number in tube_number_list:
-            tubes[tube_number].append(group[i])
+        for j, value in enumerate(binary_word):
+            if value:
+                tubes[j].append(group[i])
     return tubes
-
 
 def generate_all_tubes(group_list, zfd):
     """
@@ -205,21 +230,29 @@ def check_vector_covered(man_word, tube_results):
     return True
 
 
-def get_sick_for_group(group_tubes_results, group, zfd):
+def get_sick_for_group(group_tubes_results, group, zfd: ZFD.zfd):
     """
     for each person, check if the man vector/word is covered by tube vector
     """
-    sicks = []
-    for i in range(len(group)):
-        #man in group[i] got the zfd.binary_word_list[i]
-        if check_vector_covered(zfd.binary_word_list[i], group_tubes_results):
-            sicks.append(group[i])
+    if True:
+        sicks = []
+        for i in range(len(group)):
+            #man in group[i] got the zfd.binary_word_list[i]
+            if check_vector_covered(zfd.binary_word_list[i], group_tubes_results):
+                sicks.append(group[i])
 
 
-    return sicks
+        return sicks
+    else:
+        # check with matrix mul
+        results_np=np.array(group_tubes_results)
+        mul_sum=zfd.bool_matrix.dot(results_np)
+        sicks_places=np.where(mul_sum==zfd.n)
+        # return [group[i] for i in sicks[0].tolist()]
+        return [group[i] for i in sicks_places[0]]
 
 
-def get_sick_from_results(tubes_result, groups, zfd ,sim):  # FIXME: get group size without pass through func
+def get_sick_from_results(tubes_result, groups, zfd: ZFD.zfd ,sim):  # FIXME: get group size without pass through func
     """
     seperate results to goups of size (group size), and run get_sick_from_group for each group
     """
@@ -236,8 +269,8 @@ def get_sick_from_results(tubes_result, groups, zfd ,sim):  # FIXME: get group s
     for i in range(len(group_results)):
         g_sicks = get_sick_for_group(group_results[i], groups[i], zfd)
         sicks.append(g_sicks)
-        if len(g_sicks)>10:
-            print("MORE THAN 10 in group ", i)
+        if len(g_sicks)> zfd.max_precision:
+            print("MORE THAN MAX", zfd.max_precision , "in group", i,"FALSE DROP")
 
     # flat the list
     flat_sick = [item for sublist in sicks for item in sublist]
@@ -272,7 +305,13 @@ def get_sicks_from_id_list(id_list, sim):
 
 if __name__ == '__main__':
     sim = WorldSimulator()
-    zfd2 = ZFD.zfd(21, 3, 23)   # 23 [21, 3, 19]23 483 23^3 = 12,167 m=10
+    # zfd2 = ZFD.zfd(21, 3, 23)   # 23 [21, 3, 19]23 483 23^3 = 12,167 m=10
+    zfd2 = ZFD.zfd(22, 4, 23)   # 23 [22, 4, 19]23 506 23^4 = 279,841 m=7
+
+    # q C[nq, kq, dq]q n       N         m
+    #11 [10, 5,  6]11 110 11^5 = 161,051 m=2
+    #23 [22, 4, 19]23 506 23^4 = 279,841 m=7
+    #23 [21, 3, 19]23 483 23^3 = 12,167 m=10
 
     sick_per_day = [len(sim.world.GetNotQuarantined())]
     new_sick_per_day = [len(sim.world.GetNotQuarantined())]
@@ -285,8 +324,8 @@ if __name__ == '__main__':
 
     # sick_ids = [0]  # initial sick_ids != []
     start_sim_time = time.process_time()
-    
-    sick_history=[]
+
+    end_of_corona = False
 
     for _ in range(30):
         start_day_time = time.process_time()
@@ -296,7 +335,10 @@ if __name__ == '__main__':
 
         SICK = get_sicks_from_id_list(no_quarantine_ids, sim)
 
-        tubes = generate_all_tubes(groups, zfd2)
+        if not end_of_corona:
+            tubes = generate_all_tubes(groups, zfd2)
+        else:
+            tubes=[]
 
         # get results of new day
         tubes_results = sim.StartNewDay(tubes, to_quarantine_list)
@@ -306,10 +348,17 @@ if __name__ == '__main__':
         # get sicks
         sick_ids = get_sick_from_results(tubes_results, groups, zfd2, sim)
 
-        #remember who was sick
-        sick_history.extend(sick_ids)
+        #if no one is sick
+        if not sick_ids:
+            end_of_corona=True
+            # print("EEEENNNNDDDD OOOOFFFF CCCCOOOORRRROOOONNNNNAAA")
+
 
         print("    the test shows ", len(sick_ids), "sicks")
+        print("    ids:",sick_ids)
+        # TODO show how many sicks without the pepole went to quarantivne yesterday:
+        print("left out NOW?:", set(sick_ids)-set(to_quarantine_list))
+
 
         if (set(SICK)-set(sick_ids)):
             print("REAL: ", len(SICK), "they:")
@@ -329,7 +378,7 @@ if __name__ == '__main__':
         person_in_quara = sim.GetStatus()["In quarintine"]
         ids_in_quara = [p["id"] for p in person_in_quara]
 
-        no_quarantine_ids = list(set(range(size_of_p)) - set(to_quarantine_list)-set(sick_history))
+        no_quarantine_ids = list(set(range(size_of_p)) -set(ids_in_quara))
         # no_quarantine_ids = list((set(range(size_of_p)) - set(to_quarantine_list)) - set(ids_in_quara))
         # tubes = [[i] for i in no_quarantine_ids]
 
@@ -357,21 +406,21 @@ if __name__ == '__main__':
         print(f"Day {_+1} time = {end_day_time - start_day_time}")
 
 
-    # plt.title('New Sicks per Day')
-    # plt.plot(range(1, len(new_sick_per_day) + 1), new_sick_per_day)
-    # plt.show()
+    plt.title('New Sicks per Day')
+    plt.plot(range(1, len(new_sick_per_day) + 1), new_sick_per_day)
+    plt.show()
 
-    # plt.title('Sick per Day')
-    # plt.plot(range(1, len(sick_per_day) + 1), sick_per_day)
-    # plt.show()
+    plt.title('Sick per Day')
+    plt.plot(range(1, len(sick_per_day) + 1), sick_per_day)
+    plt.show()
 
-    # plt.title('Total Healed per Day')
-    # plt.plot(range(1, len(total_healed) + 1), total_healed)
-    # plt.show()
+    plt.title('Total Healed per Day')
+    plt.plot(range(1, len(total_healed) + 1), total_healed)
+    plt.show()
 
-    # plt.title('Cost per Day')
-    # plt.plot(range(1, len(sim.daily_cost) + 1), sim.daily_cost)
-    # plt.show()
+    plt.title('Cost per Day')
+    plt.plot(range(1, len(sim.daily_cost) + 1), sim.daily_cost)
+    plt.show()
 
 
     print('TOTAL COST ', f"{sum(sim.daily_cost):,}")

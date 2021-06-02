@@ -10,7 +10,7 @@ number of tubes is T=n*q
 import time
 start_time = time.process_time()
 
-# import numpy as np
+import numpy as np
 import itertools as iter
 
 
@@ -52,6 +52,7 @@ class zfd:
         self.uniqe_binary_words()
         self.binary_length = self.q * self.n
         self.words_number = q**k
+        self.max_precision=int((n-1)/(n-self.d))
 
     def find_creator(self,q):
         # for each number from 1 to q
@@ -80,12 +81,7 @@ class zfd:
             sum=polymul(sum,small_p[i])
         
         #return the multipication
-        return sum
-
-
-
-
-        
+        return sum        
 
     def generate_code(self,q,n,g,d):
         """
