@@ -305,8 +305,8 @@ def get_sicks_from_id_list(id_list, sim):
 
 if __name__ == '__main__':
     sim = WorldSimulator()
-    # zfd2 = ZFD.zfd(21, 3, 23)   # 23 [21, 3, 19]23 483 23^3 = 12,167 m=10
-    zfd2 = ZFD.zfd(22, 4, 23)   # 23 [22, 4, 19]23 506 23^4 = 279,841 m=7
+    zfd2 = ZFD.zfd(21, 3, 23)   # 23 [21, 3, 19]23 483 23^3 = 12,167 m=10
+    # zfd2 = ZFD.zfd(22, 4, 23)   # 23 [22, 4, 19]23 506 23^4 = 279,841 m=7
 
     # q C[nq, kq, dq]q n       N         m
     #11 [10, 5,  6]11 110 11^5 = 161,051 m=2

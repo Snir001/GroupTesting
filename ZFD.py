@@ -10,7 +10,6 @@ number of tubes is T=n*q
 import time
 start_time = time.process_time()
 
-import numpy as np
 import itertools as iter
 
 
@@ -52,20 +51,25 @@ class zfd:
         self.uniqe_binary_words()
         self.binary_length = self.q * self.n
         self.words_number = q**k
-        self.max_precision=int((n-1)/(n-self.d))
+        if (n-self.d)==0:
+             self.max_precision=999
+        else:
+            self.max_precision=int((n-1)/(n-self.d))
 
     def find_creator(self,q):
-        # for each number from 1 to q
-        for i in range(1,q+1):
+        # for each number from 1 to q-1
+        for i in range(1,q):
             # check if i power all number reach to all the numbers in the field
-            check_arr=[0]*q
-            for j in range(1,q+1):
+            check_arr=[0]*(q)
+            for j in range(1,q):
                 num=pow(i,j)%q
                 check_arr[num]=1
             # if all the check_arr is 1, we found it!
-            if sum(check_arr)==q:
+            print(check_arr)
+            if sum(check_arr)==q-1:
                 return i
-        return -1
+        print("cant find creator, {} is not a prime power".format(q))
+        raise 
 
 
 
@@ -74,7 +78,10 @@ class zfd:
         small_p=[]
         for i in range(1,d):
             small_p.append([1,-(a^i)])
-        sum=small_p[0]
+        if len(small_p) > 0:
+            sum=small_p[0]  
+        else:
+            sum=[1]
 
         #multiply them by one another
         for i in range(1,d-1):
